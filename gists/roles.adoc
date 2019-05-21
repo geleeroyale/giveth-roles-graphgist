@@ -51,10 +51,3 @@ MATCH (node:Role)
 MERGE (soul:Soul {soul: node.soul})
 MERGE (node) -[rel:FILLED_BY]->(soul)
 RETURN node
-
-
-
-// DELETE in case something goes wrong
-MATCH (node:Soul)
-DETACH DELETE node
-RETURN node
