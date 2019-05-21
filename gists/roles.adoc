@@ -1,0 +1,60 @@
+// Test the import
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=1634076525" AS line WITH line
+RETURN line
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=0" AS line WITH line
+RETURN line
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=749010575" AS line WITH line
+RETURN line
+
+
+
+// create constraints, so no duplicate nodes are created
+
+CREATE CONSTRAINT ON (id:Role) ASSERT id.id IS UNIQUE;
+
+CREATE CONSTRAINT ON (id:Circle) ASSERT id.id IS UNIQUE;
+
+CREATE CONSTRAINT ON (id:Soul) ASSERT id.id IS UNIQUE;
+
+
+
+// IMPORT the actual spreadsheets from your import folder
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=0" AS line WITH line
+CREATE (:Role {id: line.id, role: line.Role, circle: line.Circle, soul: line.Soul, purpose: line.Purpose})
+RETURN line
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=749010575" AS line WITH line
+CREATE (:Circle {id: line.id, circle: line.Circle, mission: line.Mission})
+RETURN line
+
+LOAD CSV WITH HEADERS FROM "https://docs.google.com/spreadsheets/d/1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU/export?format=csv&id=1qm9Oxmr2C6kblVwDAVUaf_WQc0pi-rKCeRh0UlkcHnU&gid=1634076525" AS line WITH line
+CREATE (:Soul {id: line.id, soul: line.soul})
+
+
+
+// Create a relationship (roles are part of Circles)
+
+MATCH (role:Role)
+MERGE (circle:Circle {circle: role.circle})
+MERGE (role)-[rel:PART_OF]->(circle)
+RETURN role
+
+
+
+// Create a relationship
+
+MATCH (node:Role)
+MERGE (soul:Soul {soul: node.soul})
+MERGE (node) -[rel:FILLED_BY]->(soul)
+RETURN node
+
+
+
+// DELETE in case something goes wrong
+MATCH (node:Soul)
+DETACH DELETE node
+RETURN node
